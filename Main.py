@@ -72,6 +72,7 @@ def get_weather_data(latitude, longitude, start_date, end_date):
 def main():
    # Load the Zillow dataset
    df = pd.read_csv(CSV_FILE_PATH)
+   df.dropna(inplace=True) # Removes rows that contain any missing values
    df['FullAddress'] = df['RegionName'].astype(str) + ', ' + df['City'] + ', ' + df['State']
 
 
