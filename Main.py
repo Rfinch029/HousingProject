@@ -30,29 +30,55 @@ def get_coordinates(address, api_key):
         return None, None
 
 
-def get_weather_data(latitude, longitude, start_date, end_date):
+def get_weather_data(coordinates_df, start_date, end_date):
     """
-    Fetch weather data from Open-Meteo API
+    Fetch weather data for all locations with a single API call
+
+    Parameters:
+    coordinates_df: DataFrame with columns 'FullAddress', 'Latitude', 'Longitude'
+    start_date: Start date for weather data in YYYY-MM-DD format
+    end_date: End date for weather data in YYYY-MM-DD format
+
+    Returns:
+    DataFrame with weather data for all locations
     """
+    # Filter out rows with null coordinates
+    valid_coordinates = coordinates_df[
+        pd.notnull(coordinates_df['Latitude']) &
+        pd.notnull(coordinates_df['Longitude'])
+        ].copy()
+
+    if valid_coordinates.empty:
+        return pd.DataFrame()
+
+    # Setup cache and retry functionality
     cache_session = requests_cache.CachedSession('.cache', expire_after=-1)
     retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
     openmeteo = openmeteo_requests.Client(session=retry_session)
 
     url = "https://archive-api.open-meteo.com/v1/archive"
+
+    # Create a single params dictionary with arrays for latitude and longitude
     params = {
-        "latitude": latitude,
-        "longitude": longitude,
+        "latitude": valid_coordinates['Latitude'].tolist(),
+        "longitude": valid_coordinates['Longitude'].tolist(),
         "start_date": start_date,
         "end_date": end_date,
         "daily": ["temperature_2m_mean", "precipitation_sum", "rain_sum", "snowfall_sum",
                   "wind_speed_10m_max", "wind_gusts_10m_max"]
     }
 
+    # Make a single API request
     responses = openmeteo.weather_api(url, params=params)
 
-    if responses:
-        response = responses[0]
+    print("API request completed, should only appear once")
+
+    # Process all responses
+    weather_data_frames = []
+
+    for i, response in enumerate(responses):
         daily = response.Daily()
+
         daily_data = {
             "date": pd.date_range(
                 start=pd.to_datetime(daily.Time(), unit="s", utc=True),
@@ -67,8 +93,20 @@ def get_weather_data(latitude, longitude, start_date, end_date):
             "wind_speed_10m_max": daily.Variables(4).ValuesAsNumpy(),
             "wind_gusts_10m_max": daily.Variables(5).ValuesAsNumpy()
         }
-        return pd.DataFrame(data=daily_data)
-    return pd.DataFrame()
+
+        # Create DataFrame from the data
+        weather_df = pd.DataFrame(data=daily_data)
+
+        # Add the location identifier
+        weather_df['FullAddress'] = valid_coordinates.iloc[i]['FullAddress']
+
+        weather_data_frames.append(weather_df)
+
+    # Combine all results
+    if weather_data_frames:
+        return pd.concat(weather_data_frames, ignore_index=True)
+    else:
+        return pd.DataFrame()
 
 
 def aggregate_monthly_data(weather_df, coordinates_df, price_df=None):
@@ -138,17 +176,11 @@ def main():
     coordinates_df.to_csv(OUTPUT_FILE_PATH, index=False)
     print(f"Coordinates saved to {OUTPUT_FILE_PATH}")
 
-    # Fetch weather data for each location
-    weather_data_frames = []
-    for _, row in coordinates_df.iterrows():
-        if pd.notnull(row['Latitude']) and pd.notnull(row['Longitude']):
-            print(f"Fetching weather data for {row['FullAddress']}...")
-            weather_df = get_weather_data(row['Latitude'], row['Longitude'], "2024-10-24", "2024-11-07")
-            weather_df['FullAddress'] = row['FullAddress']
-            weather_data_frames.append(weather_df)
+    # Fetch weather data for all locations in a single API call
+    print("Fetching weather data for all locations with a single API call...")
+    weather_data = get_weather_data(coordinates_df, "2022-10-24", "2024-11-07")
 
-    if weather_data_frames:
-        weather_data = pd.concat(weather_data_frames, ignore_index=True)
+    if not weather_data.empty:
         weather_data.to_csv(WEATHER_OUTPUT_FILE_PATH, index=False)
         print(f"Weather data saved to {WEATHER_OUTPUT_FILE_PATH}")
 
@@ -157,6 +189,8 @@ def main():
         monthly_data = aggregate_monthly_data(weather_data, coordinates_df)
         monthly_data.to_csv(MONTHLY_OUTPUT_FILE_PATH, index=False)
         print(f"Monthly aggregated data saved to {MONTHLY_OUTPUT_FILE_PATH}")
+    else:
+        print("No weather data was retrieved.")
 
 
 if __name__ == '__main__':
