@@ -6,7 +6,7 @@ from retry_requests import retry
 import openmeteo_requests
 
 # Constants
-GOOGLE_API_KEY = 'AIzaSyBXP0aw9LB7Tql656l63wXmOnFC0z-MAt4'
+GOOGLE_API_KEY = 'AIzaSyC8LRtjoAFF2_sP-x4uQ_5JO2a8E98kk6E'
 CSV_FILE_PATH = 'Data/test_data2.csv'
 OUTPUT_FILE_PATH = 'output_with_coordinates.csv'
 WEATHER_OUTPUT_FILE_PATH = 'weather_data.csv'
@@ -20,9 +20,10 @@ def get_coordinates(address, api_key):
     params = {'key': api_key, 'address': address}
     base_url = 'https://maps.googleapis.com/maps/api/geocode/json?'
     print("Requesting:", base_url, params)
-    response = requests.get(base_url, params=params).json()
+    response = requests.get(base_url, params=params).json() # uses params dictionary to request information from url
+    print(response)
 
-    if response['status'] == 'OK':
+    if response['status'] == 'OK': # checks to see if status request is valid
         geometry = response['results'][0]['geometry']
         return geometry['location']['lat'], geometry['location']['lng']
     else:
