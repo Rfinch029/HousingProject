@@ -7,19 +7,19 @@ from retry_requests import retry
 import openmeteo_requests
 
 # Constants
-GOOGLE_API_KEY = 'AIzaSyC8LRtjoAFF2_sP-x4uQ_5JO2a8E98kk6E'
+# GOOGLE_API_KEY = 'AIzaSyC8LRtjoAFF2_sP-x4uQ_5JO2a8E98kk6E'
 CSV_FILE_PATH = 'Data/zillow_data.csv'
 OUTPUT_FILE_PATH = 'output_with_coordinates.csv'
 WEATHER_OUTPUT_FILE_PATH = 'weather_data.csv'
 MONTHLY_OUTPUT_FILE_PATH = 'monthly_aggregated_data.csv'
 
 
-async def get_coordinates(session, address, api_key):
+async def get_coordinates(session, address):
     """
     Get coordinates from Google Maps API asynchronously
     """
-    params = {'key': api_key, 'address': address}
-    base_url = 'https://maps.googleapis.com/maps/api/geocode/json?'
+    params = {'address': address}
+    base_url = 'https://nominatim.openstreetmap.org/search?<params>'
     print("Requesting:", base_url, params)
     async with session.get(base_url, params=params) as response:
         result = await response.json()
@@ -32,9 +32,9 @@ async def get_coordinates(session, address, api_key):
             return None, None
 
 
-async def fetch_all_coordinates(addresses, api_key):
+async def fetch_all_coordinates(addresses):
     async with aiohttp.ClientSession() as session:
-        tasks = [get_coordinates(session, address, api_key) for address in addresses]
+        tasks = [get_coordinates(session, address) for address in addresses]
         return await asyncio.gather(*tasks)
 
 
@@ -46,7 +46,7 @@ async def main():
 
     # Get coordinates for all addresses asynchronously
     print("Fetching coordinates asynchronously...")
-    coordinates_output = await fetch_all_coordinates(df['FullAddress'], GOOGLE_API_KEY)
+    coordinates_output = await fetch_all_coordinates(df['FullAddress'])
 
     coordinates_df = pd.DataFrame({
         'FullAddress': df['FullAddress'],
