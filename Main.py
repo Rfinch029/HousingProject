@@ -8,9 +8,9 @@ from datetime import datetime
 
 # Constants
 # CSV_FILE_PATH = 'Data/zillow_data.csv'
-CSV_FILE_PATH = 'Data/zillow_data_part(9000-12895).xlsx'
+CSV_FILE_PATH = 'Preprocessing/Data/test_data2.csv'
 api_key = 'AIzaSyC8LRtjoAFF2_sP-x4uQ_5JO2a8E98kk6E'
-OUTPUT_GPS_FILE_PATH = 'Preprocessing/Output/gps/output_with_coordinates3.csv'
+OUTPUT_GPS_FILE_PATH = 'Preprocessing/Output/gps/output_with_coordinates.csv'
 OUTPUT_WEATHER_FILE_PATH = 'Preprocessing/Output/weather/weather_data.csv'
 OUTPUT_FINAL_FILE_PATH = 'Preprocessing/Output/final/monthly_aggregated_data.csv'
 
@@ -27,8 +27,6 @@ def get_coordinates(address):
         return geometry['location']['lat'], geometry['location']['lng']
     else:
         return None, None
-
-
 
 def get_weather_data(coordinates_df, start_date, end_date):
     """
@@ -162,14 +160,14 @@ def aggregate_monthly_data(weather_df, coordinates_df, price_df=None):
     # Sort by month_year and FullAddress for clarity
     result = result.sort_values(['month_year', 'FullAddress'])
      # Remove the FullAddress column from the final result
-    result = result.drop(columns=['FullAddress'])
+    #result = result.drop(columns=['FullAddress'])
 
     return result
 
 def main():
     # Define start and end dates as strings
     start_date_str = "1996-04-01"
-    end_date_str = "1998-04-01"
+    end_date_str = "2018-04-01"
     
     # Convert to datetime objects and break into components
     start_date_dt = datetime.strptime(start_date_str, "%Y-%m-%d")
@@ -180,12 +178,9 @@ def main():
     
     print("Start Date Components:", start_year, start_month, start_day)
     print("End Date Components:", end_year, end_month, end_day)
-    
-    '''
-    -------------NO NEED, ALREADY HAVE COORDINATE CSV FILE----------------------------------
-    
+
     # Load the Zillow dataset which contains address and price data
-    df = pd.read_excel(CSV_FILE_PATH)
+    df = pd.read_csv(CSV_FILE_PATH)
     # df.dropna(inplace=True)
     
     # Build a full address string to be used for geocoding
@@ -208,7 +203,10 @@ def main():
     price_df = price_df[(price_df['date'] >= start_date_dt) & (price_df['date'] <= end_date_dt)]
     # Convert back to string in the format YYYY-MM-DD if needed
     price_df['date'] = price_df['date'].dt.strftime('%Y-%m-%d')
-    
+
+    '''
+    ---------------------------NO NEED, ALREADY HAVE COORDINATE CSV FILE---------------------------
+
     # Get coordinates for all addresses
     coordinates_output = []
     for address in df['FullAddress']:
@@ -222,9 +220,9 @@ def main():
     '''
     
     coordinates_df = pd.read_csv(OUTPUT_GPS_FILE_PATH)
-    '''
-    --------------------WEATHER API BUGGIN, WILL TRY TMW WHEN TIMEOUT IS OVER------------------------
-    
+    # '''
+    # --------------------WEATHER API BUGGIN, WILL TRY TMW WHEN TIMEOUT IS OVER------------------------
+    #
     # Fetch weather data using the start and end dates
     print("Fetching weather data for all locations with a single API call...")
     weather_data = get_weather_data(coordinates_df, start_date_str, end_date_str)
@@ -240,8 +238,8 @@ def main():
     else:
         print("No weather data was retrieved.")
 
-    -------------------------------------------------------------------------------------------------
-    '''
+    # -------------------------------------------------------------------------------------------------
+    # '''
 
 if __name__ == '__main__':
     main()
