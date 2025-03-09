@@ -12,7 +12,7 @@ CSV_FILE_PATH = 'Preprocessing/Data/test_data2.csv'
 api_key = 'AIzaSyC8LRtjoAFF2_sP-x4uQ_5JO2a8E98kk6E'
 OUTPUT_GPS_FILE_PATH = 'Preprocessing/Output/gps/output_with_coordinates.csv'
 OUTPUT_WEATHER_FILE_PATH = 'Preprocessing/Output/weather/weather_data.csv'
-OUTPUT_FINAL_FILE_PATH = 'Preprocessing/Output/final/monthly_aggregated_data.csv'
+OUTPUT_FINAL_FILE_PATH = 'Preprocessing/Output/final/monthly_aggregated_data_test.csv'
 
 
 def get_coordinates(address):
