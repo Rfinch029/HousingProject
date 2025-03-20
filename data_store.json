@@ -3,5 +3,10 @@
         "address": "567 Riverwoods Dr.",
         "temperature": "101",
         "humidity": "67"
+    },
+    {
+        "address": "345 fdtyf",
+        "temperature": "456",
+        "humidity": "45"
     }
 ]

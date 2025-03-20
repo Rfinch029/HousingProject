@@ -62,3 +62,61 @@ class LSTM:
             h_seq.append(h)  # updating hidden state value
 
         return np.array(h_seq)  # returns the vector h_seq for the next iteration as a nparray.
+
+    # CONFUSING: dL_dh_seq stands for derivative of Loss with respect to hidden state. We are inputting a list of gradient losses
+    def backward(self, dL_dh_seq, learning_rate = 0.01):
+        # These gradient accumulators will store the sum of gradients across all time steps
+        dW_f = np.zeros_like(self.W_f)
+        db_f = np.zeros_like(self.b_f)
+        dW_i = np.zeros_like(self.W_i)
+        db_i = np.zeros_like(self.b_i)
+        dW_c = np.zeros_like(self.W_c)
+        db_c = np.zeros_like(self.b_c)
+        dW_o = np.zeros_like(self.W_o)
+        db_o = np.zeros_like(self.b_o)
+
+        # These next step gradients are propagated from the future time step to the current one.
+        d_next_h = np.zeros((self.hidden_dim, 1))
+        d_next_c = np.zeros((self.hidden_dim, 1))
+
+        # backpropagation through time
+        for t in reversed(range(len(self.cache))):  # we are iterating backwards through self.cache (intermediate values) because of chain rule.
+            (h, c, fg, ig, cg, combined) = self.cache[t]  # accessing various values from cache.
+            dL_dh = dL_dh_seq[t] + d_next_h
+            d_ot = dL_dh * np.tanh(c) * ot * (1 - ot)
+            dL_dc = dL_dh * ot * (1 - np.tanh(c) ** 2) + d_next_c
+
+            d_ft = dL_dc * c * ft * (1 - ft)
+            d_it = dL_dc * c_tilde * it * (1 - it)
+            d_c_tilde = dL_dc * it * (1 - c_tilde ** 2)
+
+            dW_f += np.dot(d_ft, combined.T)
+            db_f += d_ft
+            dW_i += np.dot(d_it, combined.T)
+            db_i += d_it
+            dW_c += np.dot(d_c_tilde, combined.T)
+            db_c += d_c_tilde
+            dW_o += np.dot(d_ot, combined.T)
+            db_o += d_ot
+
+            d_combined = (np.dot(self.W_f.T, d_ft) +
+                          np.dot(self.W_i.T, d_it) +
+                          np.dot(self.W_c.T, d_c_tilde) +
+                          np.dot(self.W_o.T, d_ot))
+
+            d_next_h = d_combined[:self.hidden_dim, :]
+            d_next_c = dL_dc * ft
+
+            # Update weights using gradient descent
+        self.W_f -= learning_rate * dW_f
+        self.b_f -= learning_rate * db_f
+        self.W_i -= learning_rate * dW_i
+        self.b_i -= learning_rate * db_i
+        self.W_c -= learning_rate * dW_c
+        self.b_c -= learning_rate * db_c
+        self.W_o -= learning_rate * dW_o
+        self.b_o -= learning_rate * db_o
+
+
+
+
