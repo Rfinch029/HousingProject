@@ -64,8 +64,7 @@ class LSTM:
         return np.array(h_seq)  # returns the vector h_seq for the next iteration as a nparray.
 
     # CONFUSING: dL_dh_seq stands for derivative of Loss with respect to hidden state. We are inputting a list of gradient losses
-    def backward(self, dL_dh_seq, learning_rate = 0.01):
-        # These gradient accumulators will store the sum of gradients across all time steps
+    def backward(self, dL_dh_seq, learning_rate=0.01):
         dW_f = np.zeros_like(self.W_f)
         db_f = np.zeros_like(self.b_f)
         dW_i = np.zeros_like(self.W_i)
@@ -75,20 +74,19 @@ class LSTM:
         dW_o = np.zeros_like(self.W_o)
         db_o = np.zeros_like(self.b_o)
 
-        # These next step gradients are propagated from the future time step to the current one.
         d_next_h = np.zeros((self.hidden_dim, 1))
         d_next_c = np.zeros((self.hidden_dim, 1))
 
-        # backpropagation through time
-        for t in reversed(range(len(self.cache))):  # we are iterating backwards through self.cache (intermediate values) because of chain rule.
-            (h, c, fg, ig, cg, combined) = self.cache[t]  # accessing various values from cache.
+        for t in reversed(range(len(self.cache))):
+            (h, c, ft, it, cg, ot, combined) = self.cache[t]
+
             dL_dh = dL_dh_seq[t] + d_next_h
             d_ot = dL_dh * np.tanh(c) * ot * (1 - ot)
             dL_dc = dL_dh * ot * (1 - np.tanh(c) ** 2) + d_next_c
 
             d_ft = dL_dc * c * ft * (1 - ft)
-            d_it = dL_dc * c_tilde * it * (1 - it)
-            d_c_tilde = dL_dc * it * (1 - c_tilde ** 2)
+            d_it = dL_dc * cg * it * (1 - it)
+            d_c_tilde = dL_dc * it * (1 - cg ** 2)
 
             dW_f += np.dot(d_ft, combined.T)
             db_f += d_ft
@@ -107,7 +105,7 @@ class LSTM:
             d_next_h = d_combined[:self.hidden_dim, :]
             d_next_c = dL_dc * ft
 
-            # Update weights using gradient descent
+        # Update weights using gradient descent
         self.W_f -= learning_rate * dW_f
         self.b_f -= learning_rate * db_f
         self.W_i -= learning_rate * dW_i
@@ -116,6 +114,7 @@ class LSTM:
         self.b_c -= learning_rate * db_c
         self.W_o -= learning_rate * dW_o
         self.b_o -= learning_rate * db_o
+
 
 
 
