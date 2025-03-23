@@ -1,26 +1,35 @@
-import numpy as np
+import numpy as np # provides the library for ndarray data structures (other libraries depend on this)
 
 class LSTM:
     def __init__(self, input_dim, hidden_dim):
-        self.input_dim = input_dim
-        self.hidden_dim = hidden_dim
+        self.input_dim = input_dim # input_dimension is defined by the number of features
+        self.hidden_dim = hidden_dim # Number of hidden neurons in model. Appropriate # --> balance of complexity
 
-        # Xavier Initialization for weights and zeros for biases.
-        self.W_f = np.random.randn(hidden_dim, input_dim + hidden_dim) * np.sqrt(1 / (input_dim + hidden_dim))
+        # Xavier Initialization for weights
+        # What is Xavier Initialization? The Xavier Initialization accounts for issues of exploding and shrinking
+        # gradients by normalizing variance accordingly. "Basically, an additional safety measure"
+
+        # NOTE: all weight and biases are defined as NumPy arrays
+
+        # Weights and biases for forget gate
+        self.W_f = np.random.randn(hidden_dim, input_dim + hidden_dim) * np.sqrt(1 / input_dim + hidden_dim)
         self.b_f = np.zeros((hidden_dim, 1))
 
-        self.W_i = np.random.randn(hidden_dim, input_dim + hidden_dim) * np.sqrt(1 / (input_dim + hidden_dim))
+        # Weights and biases for input gate
+        self.W_i = np.random.randn(hidden_dim, input_dim + hidden_dim) * np.sqrt(1 / input_dim + hidden_dim)
         self.b_i = np.zeros((hidden_dim, 1))
 
-        self.W_c = np.random.randn(hidden_dim, input_dim + hidden_dim) * np.sqrt(1 / (input_dim + hidden_dim))
+        # Weights and biases for cell-state gate
+        self.W_c = np.random.randn(hidden_dim, input_dim + hidden_dim) * np.sqrt(1 / input_dim + hidden_dim)
         self.b_c = np.zeros((hidden_dim, 1))
 
-        self.W_o = np.random.randn(hidden_dim, input_dim + hidden_dim) * np.sqrt(1 / (input_dim + hidden_dim))
+        # Weights and biases for output gate
+        self.W_o = np.random.randn(hidden_dim, input_dim + hidden_dim) * np.sqrt(1 / input_dim + hidden_dim)
         self.b_o = np.zeros((hidden_dim, 1))
 
+    # activation functions
     @staticmethod
     def sigmoid(x):
-        # Clip x to avoid overflow issues in the exponential
         x = np.clip(x, -500, 500)
         return 1 / (1 + np.exp(-x))
 
@@ -28,6 +37,7 @@ class LSTM:
     def tanh_derivative(x):
         return 1 - np.tanh(x) ** 2
 
+    # forward pass method.
     def forward(self, x):
         T = x.shape[0]
         h = np.zeros((self.hidden_dim, 1))
