@@ -66,7 +66,7 @@ def train():
     b_out = np.zeros((1, 1))
 
     num_epochs = 100
-    learning_rate = 0.002
+    learning_rate = 0.003
     loss_history = []
 
     # Training loop.
