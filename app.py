@@ -26,15 +26,13 @@ def save_data(data):
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        address = request.form.get("address")
-        temperature = request.form.get("temperature")
-        humidity = request.form.get("humidity")
+        latitude = request.form.get("latitude")
+        longitude = request.form.get("longitude")
 
-        if address and temperature and humidity:
+        if latitude and longitude:
             user_data = {
-                "address": address,
-                "temperature": temperature,
-                "humidity": humidity
+                "latitude": latitude,
+                "longitude": longitude
             }
             save_data(user_data)
             return redirect(url_for("success"))
