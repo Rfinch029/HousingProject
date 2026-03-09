@@ -7,6 +7,10 @@
 </head>
 <body>
     <h2>Enter House Coordinates</h2>
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    <p>First prediction may take longer because the model is trained and cached once.</p>
     <form method="post">
         <label for="latitude">Latitude:</label>
         <input type="number" id="latitude" name="latitude" step="any" required><br><br>

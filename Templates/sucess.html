@@ -6,8 +6,24 @@
     <title>Success</title>
 </head>
 <body>
-    <h2>Data Submitted Successfully!</h2>
-    <p>Your input has been saved.</p>
+    {% if result %}
+    <h2>Prediction Result</h2>
+    <p>
+        Input Coordinates:
+        ({{ "%.7f"|format(result.input_latitude) }}, {{ "%.7f"|format(result.input_longitude) }})
+    </p>
+    <p>
+        Closest Historical House:
+        ({{ "%.6f"|format(result.closest_latitude) }}, {{ "%.6f"|format(result.closest_longitude) }})
+    </p>
+    <p>Last Known Price ({{ result.last_month }}): ${{ "{:,.2f}".format(result.last_known_price) }}</p>
+    <p>Lag Features: lag_1=${{ "{:,.2f}".format(result.lag_1) }}, lag_3=${{ "{:,.2f}".format(result.lag_3) }}, lag_12=${{ "{:,.2f}".format(result.lag_12) }}</p>
+    <p>Predicted Residual Change: ${{ "{:,.2f}".format(result.predicted_residual) }}</p>
+    <h3>Predicted Next-Month Price: ${{ "{:,.2f}".format(result.predicted_price) }}</h3>
+    {% else %}
+    <h2>No Prediction Yet</h2>
+    <p>Submit latitude and longitude from the home page.</p>
+    {% endif %}
     <a href="/">Go Back</a>
 </body>
 </html>

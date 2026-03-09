@@ -11,20 +11,24 @@ class LSTM:
 
         # NOTE: all weight and biases are defined as NumPy arrays
 
+        fan_in = input_dim + hidden_dim
+        init_scale = np.sqrt(1.0 / fan_in)
+
         # Weights and biases for forget gate
-        self.W_f = np.random.randn(hidden_dim, input_dim + hidden_dim) * np.sqrt(1 / input_dim + hidden_dim)
-        self.b_f = np.zeros((hidden_dim, 1))
+        self.W_f = np.random.randn(hidden_dim, fan_in) * init_scale
+        # Positive forget bias helps retain useful state early in training.
+        self.b_f = np.ones((hidden_dim, 1))
 
         # Weights and biases for input gate
-        self.W_i = np.random.randn(hidden_dim, input_dim + hidden_dim) * np.sqrt(1 / input_dim + hidden_dim)
+        self.W_i = np.random.randn(hidden_dim, fan_in) * init_scale
         self.b_i = np.zeros((hidden_dim, 1))
 
         # Weights and biases for cell-state gate
-        self.W_c = np.random.randn(hidden_dim, input_dim + hidden_dim) * np.sqrt(1 / input_dim + hidden_dim)
+        self.W_c = np.random.randn(hidden_dim, fan_in) * init_scale
         self.b_c = np.zeros((hidden_dim, 1))
 
         # Weights and biases for output gate
-        self.W_o = np.random.randn(hidden_dim, input_dim + hidden_dim) * np.sqrt(1 / input_dim + hidden_dim)
+        self.W_o = np.random.randn(hidden_dim, fan_in) * init_scale
         self.b_o = np.zeros((hidden_dim, 1))
 
     # activation functions
